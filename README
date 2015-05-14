@@ -1,0 +1,10 @@
+This command is used for android bt_config.xml parsing, use like this:
+
+droidparser bt_config.xml
+
+for command test use test.sh under src directory
+
+part of code taken from the bluez:
+lib/bluetooth.c
+lib/bluetooth.h
+android/client/if-bt.c

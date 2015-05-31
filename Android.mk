@@ -3,7 +3,9 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES:= src/droidparser.c
+LOCAL_SRC_FILES:= \
+	src/bluetooth.c \
+	src/droidparser.c
 
 LOCAL_C_INCLUDES += external/libxml2/include
 

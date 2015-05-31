@@ -27,6 +27,21 @@ typedef struct _value_string {
 	const char *strptr;
 } value_string;
 
+/* Device Types */
+const value_string device_type_vals[] = {
+	{ 0x01,   "BREDR" },
+	{ 0x02,   "BLE" },
+	{ 0x03,   "DUMO" },
+	{ 0,      NULL }
+};
+
+const value_string report_type_vals[] = {
+	{ 1,   "INPUT REPORT" },
+	{ 2,   "OUTPUT REPORT" },
+	{ 3,   "FEATURE REPORT" },
+	{ 0,   NULL }
+};
+
 const value_string bluetooth_uuid_vals[] = {
 	/* Protocol Identifiers - https://www.bluetooth.org/en-us/specification/assigned-numbers/service-discovery */
 	{ 0x0001,   "SDP" },

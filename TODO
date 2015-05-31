@@ -1,6 +1,5 @@
 1. add gatt attribute parsing
 2. add cod parsing
 3. add hid descriptor parsing
-4. add hogp parsing
+4. hold device information with a struct
 5. replace hard-coded text color with macro
-6. hold device information with a struct

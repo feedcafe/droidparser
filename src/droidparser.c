@@ -93,6 +93,52 @@ static void parse_bdaddr(xmlTextReaderPtr reader)
 	addr = strtoba(value);
 }
 
+static void parse_hogp(xmlTextReaderPtr reader)
+{
+	char *value;
+	char *report;
+	char *uuid;
+	char *report_id;
+	char *report_type;
+	char *prop;
+	char *inst_id;
+	uint16_t uuid16;
+	uint8_t rtype;
+
+	value = (char *)xmlTextReaderConstValue(reader);
+	while ((report = strsep(&value, " ")) != NULL) {
+		if (0x00 == report[0])
+			continue;
+		printf("\n\t\t\t %s", report);
+
+		/* uuid16 */
+		uuid = strsep(&report, ":");
+		printf("\n\t\t\t %s: ", uuid);
+		uuid16 = strtol(uuid, NULL, 16);
+		printf("%s", val_to_str(uuid16, bluetooth_uuid_vals));
+
+		/* report id */
+		report_id = strsep(&report, ":");
+		printf("\n\t\t\t report ID: \t0x%s", report_id);
+
+		/* report type */
+		report_type = strsep(&report, ":");
+		rtype = atoi(report_type);
+		printf("\n\t\t\t report type: \t%d %s", rtype,
+				val_to_str(rtype, report_type_vals));
+
+		/* prop */
+		prop = strsep(&report, ":");
+		printf("\n\t\t\t property: \t%s", prop);
+
+		/* inst_id */
+		inst_id = strsep(&report, ":");
+		printf("\n\t\t\t inst_id: \t%s\n", inst_id);
+	}
+	printf("\n");
+}
+
+/* TODO */
 static void parse_cod(xmlTextReaderPtr reader)
 {
 	const xmlChar *value;
@@ -101,20 +147,6 @@ static void parse_cod(xmlTextReaderPtr reader)
 	if (value != NULL) {
 		printf(" %s\n", value);
 	}
-}
-
-/* TODO */
-static void parse_hogp(xmlTextReaderPtr reader)
-{
-	char *value;
-	char *report;
-	uint16_t uuid16;
-
-	value = (char *)xmlTextReaderConstValue(reader);
-	while ((report = strsep(&value, " ")) != NULL) {
-		printf("\n\t\t\t %s", report);
-	}
-	printf("\n");
 }
 
 /* TODO */

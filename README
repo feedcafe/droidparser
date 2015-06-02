@@ -1,10 +1,23 @@
 This command is used for android bt_config.xml parsing, use like this:
-
 droidparser bt_config.xml
 
+1. test
 for command test use test.sh under src directory
 
-part of code taken from the bluez:
-lib/bluetooth.c
-lib/bluetooth.h
-android/client/if-bt.c
+2. references
+   1) lib/bluetooth.c
+   2) lib/bluetooth.h
+   3) android/client/if-bt.c
+   4) wireshark/epan/value_string.c
+   5) wireshark/epan/value_string.h
+   6) wireshark/epan/to_str.c
+   7) wireshark/epan/proto.c
+   8) wireshark/epan/dissectors/packet-bthci_cmd.c
+   9) doc/README.dissector
+
+3. assigned numbers (official website)
+   https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband
+
+4. online CoD generator
+   http://bluetooth-pentest.narod.ru/software/bluetooth_class_of_device-service_generator.html
+   http://www.ampedrftech.com/cod.htm

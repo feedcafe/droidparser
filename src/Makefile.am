@@ -14,8 +14,8 @@ AM_CFLAGS =\
 bin_PROGRAMS = droidparser
 
 droidparser_SOURCES = \
-	bluetooth.c   \
-	droidparser.c
+        bluetooth.c   \
+        droidparser.c
 
 droidparser_LDFLAGS = 
 

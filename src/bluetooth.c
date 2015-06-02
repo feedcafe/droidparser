@@ -126,6 +126,22 @@ bdaddr_t *strtoba(const char *str)
 	return ba;
 }
 
+const char *val_to_str(const uint32_t val, const value_string *vs)
+{
+	int i = 0;
+
+	if (vs) {
+		while (vs[i].strptr) {
+			if (vs[i].value == val) {
+				return(vs[i].strptr);
+			}
+			i++;
+		}
+	}
+
+	return NULL;
+}
+
 void bdaddr_conflict_detect(const bdaddr_t *ba)
 {
 	int i, j;
@@ -213,6 +229,158 @@ void add_remote_device(const bdaddr_t *addr)
 				(remote_devices_cnt - i) * sizeof(bdaddr_t));
 	remote_devices[i] = *addr;
 	remote_devices_cnt++;
+}
+
+/* Generate, into "buf", a string showing the bits of a bitfield.
+   Return a pointer to the character after that string. */
+/*XXX this needs a buf_len check */
+char *
+other_decode_bitfield_value(char *buf, const uint64_t val, const uint64_t mask, const int width)
+{
+	int i;
+	uint64_t bit;
+	char *p;
+
+	i = 0;
+	p = buf;
+	bit = 1 << (width - 1);
+	for (;;) {
+		if (mask & bit) {
+			/* This bit is part of the field.  Show its value. */
+			if (val & bit)
+				*p++ = '1';
+			else
+				*p++ = '0';
+		} else {
+			/* This bit is not part of the field. */
+			*p++ = '.';
+		}
+		bit >>= 1;
+		i++;
+		if (i >= width)
+			break;
+		if (i % 4 == 0)
+			*p++ = ' ';
+	}
+	*p = '\0';
+	return p;
+}
+
+static char *
+decode_bitfield_value(char *buf, const uint64_t val, const uint64_t mask, const int width)
+{
+	char *p;
+
+	p = other_decode_bitfield_value(buf, val, mask, width);
+	p = stpcpy(p, " = ");
+
+	return p;
+}
+
+static char *
+decode_bitfield_minor_class(const uint32_t val, int shift,
+		const struct dev_class_field *field)
+{
+	char *p;
+	char buf[64];
+	uint8_t minor_class;	/* minor class */
+	const char *minor_class_name;
+
+	p = decode_bitfield_value(buf, val, field->bitmask, field->width);
+	printf("\t\t\t%s%s", buf, field->name);
+
+	minor_class = (val & field->bitmask) >> shift;
+	minor_class_name = val_to_str(minor_class, field->strings);
+	if (minor_class_name)
+		printf(": %s\n", minor_class_name);
+	else
+		printf("\n");
+
+	return p;
+}
+
+void print_dev_class(const uint32_t dev_class)
+{
+	uint16_t major_service;		/* major service */
+	uint8_t major_class;		/* major class */
+	const char *minor_class_name;
+	uint8_t format;
+	int i;
+	char buf[64];
+
+	/* take major class into service bits for decoding */
+	major_service = (dev_class & 0xffff00) >> 8;
+	major_class = (dev_class & 0x001f00) >> 8;
+	format = (dev_class & 0x000003);
+
+	printf(" %#x\n", dev_class);
+
+	/* decode minor class */
+
+	/* FIXME hard-coded index value */
+	switch (major_class) {
+	case 0x01: /* Computer */
+		decode_bitfield_minor_class(dev_class, 2, &minor_class_vals[0]);
+		break;
+	case 0x02: /* Phone */
+		decode_bitfield_minor_class(dev_class, 2, &minor_class_vals[1]);
+		break;
+	case 0x03: /* LAN/Network Access Point */
+		decode_bitfield_minor_class(dev_class, 5, &minor_class_vals[2]);
+		decode_bitfield_minor_class(dev_class, 2, &minor_class_vals[3]);
+		break;
+	case 0x04: /* Audio/Video */
+		decode_bitfield_minor_class(dev_class, 2, &minor_class_vals[4]);
+		break;
+	case 0x05: /* Peripheral */
+		decode_bitfield_minor_class(dev_class, 6, &minor_class_vals[5]);
+		decode_bitfield_minor_class(dev_class, 2, &minor_class_vals[6]);
+		break;
+	case 0x06: /* Imaging */
+		decode_bitfield_minor_class(dev_class, 7, &minor_class_vals[7]);
+		decode_bitfield_minor_class(dev_class, 6, &minor_class_vals[8]);
+		decode_bitfield_minor_class(dev_class, 5, &minor_class_vals[9]);
+		decode_bitfield_minor_class(dev_class, 4, &minor_class_vals[10]);
+
+		break;
+	case 0x07: /* Wearable */
+		decode_bitfield_minor_class(dev_class, 2, &minor_class_vals[11]);
+		break;
+	case 0x08: /* Toy */
+		decode_bitfield_minor_class(dev_class, 2, &minor_class_vals[12]);
+		break;
+	case 0x09: /* Health */
+		decode_bitfield_minor_class(dev_class, 2, &minor_class_vals[13]);
+		break;
+	default:
+		minor_class_name = "Unknown";
+		printf(" %s\n", minor_class_name);
+		break;
+	}
+
+	/* decode format */
+	decode_bitfield_value(buf, format,
+			minor_class_vals[MINOR_CLASS_NUM+1].bitmask,
+			minor_class_vals[MINOR_CLASS_NUM+1].width);
+	printf("\t\t\t%s%s: %02x\n", buf, minor_class_vals[MINOR_CLASS_NUM+1].name, format);
+
+	/* major service and class */
+	for (i = 0; i < MAJOR_SERVICE_NUM; i++) {
+		decode_bitfield_value(buf, major_service,
+				service_class_vals[i].bitmask,
+				service_class_vals[i].width);
+		printf("\t\t\t%s%s", buf, service_class_vals[i].name);
+
+		if (service_class_vals[i].strings == NULL) {
+			printf(" : %s\n", (strchr(buf, '1') != NULL) ? "True" : "False");
+			continue;
+		}
+	
+		printf(": %s\t0x%04x\n",
+				val_to_str(service_class_vals[i].bitmask & major_service,
+					   service_class_vals[i].strings),
+				service_class_vals[i].bitmask & major_service);
+	}
 }
 
 const char *bt_compidtostr(int compid)

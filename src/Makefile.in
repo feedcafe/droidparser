@@ -316,8 +316,8 @@ AM_CFLAGS = \
 	 -g -lxml2
 
 droidparser_SOURCES = \
-	bluetooth.c   \
-	droidparser.c
+        bluetooth.c   \
+        droidparser.c
 
 droidparser_LDFLAGS = 
 droidparser_LDADD = 

@@ -19,7 +19,6 @@
 
 #include <libxml/xmlreader.h>
 
-#include "droidparser.h"
 #include "bluetooth.h"
 
 /* Device Types */
@@ -35,22 +34,6 @@ xmlChar *tag;
 
 bdaddr_t *addr; /* local adapter mac address */
 bdaddr_t *bdaddr; /* remote device mac address */
-
-const char *val_to_str(const uint32_t val, const value_string *vs)
-{
-	int i = 0;
-
-	if (vs) {
-		while (vs[i].strptr) {
-			if (vs[i].value == val) {
-				return(vs[i].strptr);
-			}
-			i++;
-		}
-	}
-
-	return NULL;
-}
 
 static void parse_services(xmlTextReaderPtr reader)
 {
@@ -138,15 +121,12 @@ static void parse_hogp(xmlTextReaderPtr reader)
 	printf("\n");
 }
 
-/* TODO */
-static void parse_cod(xmlTextReaderPtr reader)
+static void parse_dev_class(xmlTextReaderPtr reader)
 {
-	const xmlChar *value;
+	char *value;
 
-	value = xmlTextReaderConstValue(reader);
-	if (value != NULL) {
-		printf(" %s\n", value);
-	}
+	value = (char *)xmlTextReaderConstValue(reader);
+	print_dev_class(atoi(value));
 }
 
 /* TODO */
@@ -234,7 +214,7 @@ static void processNode(xmlTextReaderPtr reader)
 		else if (xmlStrstr((xmlChar *)"GattAttrs", tag))
 			parse_gatt_attribute(reader);
 		else if (xmlStrstr((xmlChar *)"DevClass", tag))
-			parse_cod(reader);
+			parse_dev_class(reader);
 		else if (xmlStrstr((xmlChar *)"Timestamp", tag))
 			parse_timestamp(reader);
 		else if (xmlStrstr((xmlChar *)"Address", tag))
